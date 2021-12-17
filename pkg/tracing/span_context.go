@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -40,7 +40,7 @@ func NewSpanFromObject(ctx context.Context, operationName string, obj runtime.Ob
 	}
 	// TODO Keys, values in span?
 	// TODO Maybe this should live in the pkg
-	ctx, sp := global.Tracer("controller-runtime").Start(ctx, fmt.Sprintf("Start reconciling %s", m.GetName()))
+	ctx, sp := otel.Tracer("controller-runtime").Start(ctx, fmt.Sprintf("Start reconciling %s", m.GetName()))
 	// TODO When does it end?
 	/*
 		ctx, sp := SpanFromAnnotations(ctx, operationName, m.GetAnnotations())
@@ -48,8 +48,12 @@ func NewSpanFromObject(ctx context.Context, operationName string, obj runtime.Ob
 			return nil, nil, log
 		}
 	*/
-	sp.SetAttributes(label.String("objectKey", m.GetNamespace()+"/"+m.GetName()))
+	sp.SetAttributes(label.String("objectKey", m.GetNamespace()+"/"+m.GetName()),
+		label.String("objectType", obj.GetObjectKind().GroupVersionKind().String()))
 	log = tracingLogger{Logger: log, Span: sp}
+
+	// TODO Try out the tracing logger?
 	ctx = ctrl.LoggerInto(ctx, log)
+	ctx = trace.ContextWithSpan(ctx, sp)
 	return ctx, sp, log
 }

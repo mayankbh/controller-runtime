@@ -3,8 +3,8 @@ package tracing
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,16 +33,16 @@ func SpanFromAnnotations(ctx context.Context, name string, annotations map[strin
 	if innerCtx == ctx {
 		return ctx, nil
 	}
-	return global.Tracer(libName).Start(innerCtx, name)
+	return otel.Tracer(libName).Start(innerCtx, name)
 }
 
 func spanContextFromAnnotations(ctx context.Context, annotations map[string]string) context.Context {
-	return global.TextMapPropagator().Extract(ctx, annotationsCarrier(annotations))
+	return otel.GetTextMapPropagator().Extract(ctx, annotationsCarrier(annotations))
 }
 
 // AddTraceAnnotation adds an annotation encoding current span ID
 func AddTraceAnnotation(ctx context.Context, annotations map[string]string) {
-	global.TextMapPropagator().Inject(ctx, annotationsCarrier(annotations))
+	otel.GetTextMapPropagator().Inject(ctx, annotationsCarrier(annotations))
 }
 
 // AddTraceAnnotationToUnstructured adds an annotation encoding current span ID to all objects
@@ -72,7 +72,7 @@ func AddTraceAnnotationToObject(ctx context.Context, obj runtime.Object) error {
 		annotations = make(map[string]string)
 	} else {
 		// Check if the object already has some context set.
-		for _, key := range global.TextMapPropagator().Fields() {
+		for _, key := range otel.GetTextMapPropagator().Fields() {
 			if annotationsCarrier(annotations).Get(key) != "" {
 				return nil // Don't override
 			}

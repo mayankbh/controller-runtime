@@ -3,9 +3,9 @@ package tracing
 import (
 	"io"
 
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
-	"go.opentelemetry.io/otel/propagators"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -24,7 +24,7 @@ func SetupJaeger(serviceName string) (io.Closer, error) {
 	}
 
 	// set global propagator to tracecontext (the default is no-op).
-	global.SetTextMapPropagator(propagators.TraceContext{})
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	return funcCloser{f: flush}, nil
 }

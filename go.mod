@@ -15,10 +15,10 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/stretchr/testify v1.7.0
-	go.opentelemetry.io/otel v0.13.0
+	go.opentelemetry.io/otel v0.14.0
 	go.opentelemetry.io/otel/exporters/otlp v0.13.0
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.13.0
-	go.opentelemetry.io/otel/sdk v0.13.0
+	go.opentelemetry.io/otel/sdk v0.14.0
 	go.uber.org/goleak v1.1.10
 	go.uber.org/zap v1.17.0
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba

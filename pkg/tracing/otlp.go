@@ -4,9 +4,9 @@ import (
 	"context"
 	"io"
 
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/propagators"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/semconv"
@@ -23,14 +23,19 @@ func SetupOTLP(serviceName string) (io.Closer, error) {
 	}
 
 	bsp := sdktrace.NewBatchSpanProcessor(exp)
+	// TODO ignore errors? idk.
+	resource, err := resource.New(context.Background(), resource.WithAttributes(semconv.ServiceNameKey.String(serviceName)))
+	if err != nil {
+		panic(err)
+	}
 	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithResource(resource.New(semconv.ServiceNameKey.String(serviceName))),
+		sdktrace.WithResource(resource),
 		sdktrace.WithSpanProcessor(bsp),
 	)
 
 	// set global propagator to tracecontext (the default is no-op).
-	global.SetTextMapPropagator(propagators.TraceContext{})
-	global.SetTracerProvider(tracerProvider)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	otel.SetTracerProvider(tracerProvider)
 
 	return otlpCloser{exp: exp, bsp: bsp}, nil
 }
@@ -41,6 +46,6 @@ type otlpCloser struct {
 }
 
 func (s otlpCloser) Close() error {
-	s.bsp.Shutdown() // shutdown the processor
+	s.bsp.Shutdown(context.Background()) // shutdown the processor
 	return s.exp.Shutdown(context.Background())
 }

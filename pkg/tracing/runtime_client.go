@@ -3,8 +3,8 @@ package tracing
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -51,14 +51,14 @@ func objectAttrs(obj runtime.Object) (attrs []label.KeyValue) {
 func logStart(ctx context.Context, op string, attrs ...label.KeyValue) trace.Span {
 	sp := trace.SpanFromContext(ctx)
 	if sp != nil {
-		sp.AddEvent(ctx, op, attrs...)
+		sp.AddEvent(op, trace.WithAttributes(attrs...))
 	}
 	return sp
 }
 
 func logError(ctx context.Context, sp trace.Span, err error) error {
 	if sp != nil && err != nil {
-		sp.RecordError(ctx, err)
+		sp.RecordError(err)
 	}
 	return err
 }
