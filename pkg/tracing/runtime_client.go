@@ -10,14 +10,26 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 const libName = "controller-runtime" // shows up in traces
 
+// copy-pasta'd from cluster-api/utils.
+func ManagerDelegatingClientFunc(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
+	c, err := client.New(config, options)
+	if err != nil {
+		return nil, err
+	}
+	return client.NewDelegatingClient(
+		client.NewDelegatingClientInput{cache, c, nil, false},
+	)
+}
+
 // WrapRuntimeClient wraps a NewRuntimeClient function with one that does tracing
-func WrapRuntimeClient(upstreamNew manager.NewClientFunc) manager.NewClientFunc {
-	return func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error) {
+func WrapRuntimeClient(upstreamNew manager.NewClientFunc) cluster.NewClientFunc {
+	return func(cache cache.Cache, config *rest.Config, options client.Options, uncachedObjects ...client.Object) (client.Client, error) {
 		delegatingClient, err := upstreamNew(cache, config, options)
 		if err != nil {
 			return nil, err

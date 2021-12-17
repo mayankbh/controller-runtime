@@ -13,7 +13,7 @@ import (
 func SetupJaeger(serviceName string) (io.Closer, error) {
 	// Create and install Jaeger export pipeline
 	flush, err := jaeger.InstallNewPipeline(
-		jaeger.WithCollectorEndpoint("http://jaeger-agent.default:14268/api/traces"), // FIXME name?
+		jaeger.WithCollectorEndpoint("http://10.187.96.171:14268/api/traces"), // TODO: Hacked in IP. Could maybe create a headless service hitting the VM.
 		jaeger.WithProcess(jaeger.Process{
 			ServiceName: serviceName,
 		}),

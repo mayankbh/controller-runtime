@@ -95,6 +95,9 @@ type Manager interface {
 	GetControllerOptions() v1alpha1.ControllerConfigurationSpec
 }
 
+// NewClientFunc allows a user to define how to create a client
+type NewClientFunc func(cache cache.Cache, config *rest.Config, options client.Options) (client.Client, error)
+
 // Options are the arguments for creating a new Manager
 type Options struct {
 	// Scheme is the scheme used to resolve runtime.Objects to GroupVersionKinds / Resources
