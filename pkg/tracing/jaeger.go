@@ -13,7 +13,10 @@ import (
 func SetupJaeger(serviceName string) (io.Closer, error) {
 	// Create and install Jaeger export pipeline
 	flush, err := jaeger.InstallNewPipeline(
-		jaeger.WithCollectorEndpoint("http://10.187.96.171:14268/api/traces"), // TODO: Hacked in IP. Could maybe create a headless service hitting the VM.
+		// TODO possible to send to multiple sinks?
+		//jaeger.WithCollectorEndpoint("http://10.187.96.171:14268/api/traces"), // Jaeger VM. Could maybe create a headless service hitting the VM.
+		//jaeger.WithCollectorEndpoint("http://10.193.44.58:14268/api/traces"), // WF proxyHacked in IP. Could maybe create a headless service hitting the VM.
+		jaeger.WithAgentEndpoint("localhost:6831"), // Local jaeger agent daemonset.
 		jaeger.WithProcess(jaeger.Process{
 			ServiceName: serviceName,
 		}),
