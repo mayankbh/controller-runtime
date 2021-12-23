@@ -17,7 +17,8 @@ func (t tracingLogger) Enabled() bool {
 
 func (t tracingLogger) Info(msg string, keysAndValues ...interface{}) {
 	t.Logger.Info(msg, keysAndValues...)
-	t.Span.AddEvent("info", trace.WithAttributes(keyValues(keysAndValues...)...))
+	kvs := append([]label.KeyValue{label.String("message", msg)}, keyValues(keysAndValues...)...)
+	t.Span.AddEvent("info", trace.WithAttributes(kvs...))
 }
 
 func (t tracingLogger) Error(err error, msg string, keysAndValues ...interface{}) {
